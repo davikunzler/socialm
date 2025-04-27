@@ -87,5 +87,60 @@ function editar(id_postagem) {
 
 
 
+function carregarPostagens() {
+    fetch('http://localhost:3000/listar_postagens')
+        .then(response => response.json())
+        .then(responseJson => {
+            const lista = document.querySelector('.duvidas');
+            lista.innerHTML = '';
+
+            responseJson.data.forEach(postagem => { // << aqui o ajuste
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('postagem');
+
+                postDiv.innerHTML = `
+                    <h3>${postagem.titulo}</h3>
+                    <p>${postagem.descricao}</p>
+                    <p><strong>Filtro:</strong> ${postagem.filtro}</p>
+
+                    <button onclick="editar(${postagem.id_postagem})" class="btn-edit">Editar</button>
+                    <button onclick="excluir(${postagem.id_postagem})" class="btn-delete">Excluir</button>
+
+                    <div class="comentario-area">
+                        <textarea id="comentario-${postagem.id_postagem}" placeholder="Escreva seu comentário..."></textarea>
+                        <button onclick="comentar(${postagem.id_postagem})" class="btn-comentar">Publicar Comentário</button>
+                    </div>
+                `;
+                lista.appendChild(postDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar postagens:', error);
+        });
+}
+async function comentar(postagemId) {
+    const conteudo = document.getElementById(`comentario-${postagemId}`).value;
+
+    try {
+        const response = await fetch('http://localhost:3000/comentar', { // agora sem /:id_postagem/:id_usuario
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ conteudo })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Comentário publicado!');
+            // Aqui você poderia atualizar a lista de comentários também se quiser
+        } else {
+            alert('Erro ao comentar.');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Ocorreu um erro ao comentar.');
+    }
+}
+
+
 
 window.onload = carregarPostagens;
